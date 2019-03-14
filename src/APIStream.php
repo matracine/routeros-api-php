@@ -7,8 +7,16 @@ class APIStream
 
     protected $stream;
 
-    public function __construct(resource $stream)
+    public function __construct($stream)
     {
+        if (false === is_resource($stream)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Argument must be a valid resource type. %s given.',
+                    gettype($stream)
+                )
+            );
+        }
         // TODO  : Should we verify the resource type ?
         $this->stream = $stream;
     }
@@ -34,6 +42,7 @@ class APIStream
         // If the fourth bit is set, we need to remove anything left in the first byte
         // and then read in yet another byte.
         $byte = ord(fread($this->stream, 1));
+        $v = $byte;
         if ($byte & 128) {
             if (($byte & 192) === 128) {
                 $length = (($byte & 63) << 8) + \ord(fread($this->stream, 1));
@@ -58,7 +67,7 @@ class APIStream
             return '';
         }
 
-        return stream_get_contents($this->_socket, $length);
+        return stream_get_contents($this->stream, $length);
     }
 
     static public function encodeWord(string $string): string
@@ -104,6 +113,6 @@ class APIStream
 
     public function writeWord(string $word)
     {
-        fwrite($this->stream, $word);
+        fwrite($this->stream, self::encodeWord($word));
     }
 }

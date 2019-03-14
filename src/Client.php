@@ -80,8 +80,6 @@ class Client implements Interfaces\ClientInterface
         if (false === $this->connect()) {
             throw new ClientException('Unable to connect to ' . $config->get('host') . ':' . $config->get('port'));
         }
-
-        $this->stream = new APIStream($this->getSocket());
     }
 
     /**
@@ -376,6 +374,7 @@ class Client implements Interfaces\ClientInterface
             // If socket is active
             if (null !== $this->getSocket()) {
 
+                $this->stream = new APIStream($this->getSocket());
                 // If we logged in then exit from loop
                 if (true === $this->login()) {
                     $connected = true;
@@ -384,6 +383,7 @@ class Client implements Interfaces\ClientInterface
 
                 // Else close socket and start from begin
                 $this->closeSocket();
+                $this->stream = null;
             }
 
             // Sleep some time between tries
